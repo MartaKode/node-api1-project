@@ -18,18 +18,24 @@ let users = [
 ]
 
 // ```````````GET```````````````
-server.get('/',(req, res) => {
-    res.json("Hi")
+// "welcome" message on homepage
+server.get('/', (req, res) => {
+    res.json("Hi from port 8000")
     throw new Error('BROKEN') // Express will catch this on its own
-  })
+})
 
 // get users
 server.get('/api/users', (req, res) => {
-    if (users) {
-        res.json(users)
-    } else {
-      throw new Error(res.status(500).json({ errorMessage: 'The users information could not be retrieved' }))
+    try {
+       res.json(users)
+    } catch {
+       res.status(500).json({ errorMessage: 'The users information could not be retrieved' })
     }
+    // if (users) {
+    //     res.json(users)
+    // } else {
+    //   throw new Error(res.status(500).json({ errorMessage: 'The users information could not be retrieved' }))
+    // }
 })
 
 // get specific user by id
@@ -37,14 +43,18 @@ server.get('/api/users/:id', (req, res) => {
     const id = req.params.id
     const user = users.find(user => user.id === id)
 
-    if (!user) {
-        res.status(404).json({ message: "The user with the specified ID does not exist." })
-    }
-    else {
-        res.json(user)
+    try {
+        if (!user) {
+            res.status(404).json({ message: "The user with the specified ID does not exist." })
+        }
+        else {
+            res.json(user)
+        }
+    } catch{
+        res.status(500).json({ errorMessage: "The user information could not be retrieved." })
+        // throw new Error(res.status(500).json({ errorMessage: "The user information could not be retrieved." }))
     }
 
-   throw new Error(res.status(500).json({ errorMessage: "The user information could not be retrieved." }))
 })
 
 //````````POST````````````` 
@@ -54,14 +64,18 @@ server.post('/api/users', (req, res) => {
 
     newUser.id = shortid.generate()
 
-    if (!newUser.name || !newUser.bio) {
-        res.status(400).json({ errorMessage: 'Please provide name and bio for the user.' })
-    } else {
-        users.push(newUser)
-        res.status(201).json(newUser)
+    try {
+        if (!newUser.name || !newUser.bio) {
+            res.status(400).json({ errorMessage: 'Please provide name and bio for the user.' })
+        } else {
+            users.push(newUser)
+            res.status(201).json(newUser)
+        }
+    } catch{
+        res.status(500).json({ errorMessage: "There was an error while saving the user to the database" })
+        // throw new Error(res.status(500).json({ errorMessage: "There was an error while saving the user to the database" }))
     }
 
-    throw new Error(res.status(500).json({ errorMessage: "There was an error while saving the user to the database" }))
 })
 
 // ````````DELETE```````````
@@ -69,14 +83,18 @@ server.delete('/api/users/:id', (req, res) => {
     const id = req.params.id;
     const deleted = users.find(user => user.id === id)
 
-    if (!deleted) {
-        res.status(404).json({ message: "The user with the specified ID does not exist." })
-    } else {
-        users = users.filter(user => user.id !== id)
-        res.json(deleted)
+    try {
+        if (!deleted) {
+            res.status(404).json({ message: "The user with the specified ID does not exist." })
+        } else {
+            users = users.filter(user => user.id !== id)
+            res.json(deleted)
+        }
+    } catch{
+        res.status(500).json({ errorMessage: "The user could not be removed" })
+        // throw new Error(res.status(500).json({ errorMessage: "The user could not be removed" }))
     }
 
-   throw new Error(res.status(500).json({ errorMessage: "The user could not be removed" }))
 })
 
 // `````````PUT```````````
@@ -86,16 +104,20 @@ server.put('/api/users/:id', (req, res) => {
 
     let updated = users.find(user => user.id === id)
 
-    if(!updated){
-        res.status(404).json({message: "The user with the specified ID does not exist."})
-    }else if(!updated.name || !updated.bio){
-        res.status(400).json({errorMessage: "Please provide name and bio for the user."})
-    }else{
-        updated = Object.assign(updated, changes)
-        res.status(200).json(updated)
+    try {
+        if (!updated) {
+            res.status(404).json({ message: "The user with the specified ID does not exist." })
+        } else if (!updated.name || !updated.bio) {
+            res.status(400).json({ errorMessage: "Please provide name and bio for the user." })
+        } else {
+            updated = Object.assign(updated, changes)
+            res.status(200).json(updated)
+        }
+    } catch{
+        res.status(500).json({ errorMessage: "The user information could not be modified." })
+        // throw new Error(res.status(500).json({ errorMessage: "The user information could not be modified." }))
     }
 
-   throw new Error(res.status(500).json({errorMessage: "The user information could not be modified." }))
 })
 
 
